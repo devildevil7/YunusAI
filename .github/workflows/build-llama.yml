@@ -1,0 +1,38 @@
+name: Build official llama.cpp Android library
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout YunusAI
+        uses: actions/checkout@v6
+
+      - name: Clone official llama.cpp
+        run: |
+          git clone https://github.com/ggml-org/llama.cpp.git
+          cd llama.cpp
+          git checkout 4fea119de30f6a923992780f6fd5ccb0bee5d47d
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: temurin
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Build official Android library
+        run: |
+          cd llama.cpp/examples/llama.android
+          ./gradlew :lib:assembleRelease --no-daemon
+
+      - name: Upload AAR
+        uses: actions/upload-artifact@v6
+        with:
+          name: yunusai-llama-android
+          path: llama.cpp/examples/llama.android/lib/build/outputs/aar/*.aar
